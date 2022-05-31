@@ -154,6 +154,21 @@ document.addEventListener('keyup', function(event){
     if(event.key == 'ArrowUp'){
         funcPrev();
     }
+    if(event.key == 's'){
+		skrytb();	
+	}
+	if(event.key == 'o'){
+		otkrytb();
+	}
+	if(event.key == 'm'){
+		if(flagSkrytb){
+			flagSkrytb = false;
+	        	div_carnav.style.visibility="hidden";
+		}else{
+			flagSkrytb = true;
+			div_carnav.style.visibility="visible";
+		}
+	}
 });
 
 var sites = [];
