@@ -1,0 +1,658 @@
+<html lang="ru">
+
+<head>
+<title>Слайдер: Архиерейская служба с Артемием</title>
+<style>
+
+body {
+    background: gray;
+    text-align: center;
+    /*overflow-y: hidden;*/
+}
+
+#addressForm {
+    width: 100%;
+}
+
+#siteForm {
+    width: 100%;
+}
+
+#myDivAdd {
+    visibility: hidden;/*visible;*/
+    background: white;
+    /*width: 50%;*/
+    z-index: 10;
+    position: absolute;
+    width: 50%;
+}
+
+#div_loadmyslider/*, 
+#address_imgmyslider, 
+#img_loadmyslider*/ {
+    /*animation:fade 2s infinite;
+    -webkit-animation:fade 2s infinite;*/
+}
+
+@keyframes fade
+{
+    0% {opacity:0}
+    33.333% { opacity: 0}
+    66.666% { opacity: 0}
+    100% { opacity: 1}
+}
+
+#mytable tr td.clicked {
+    background: yellow;
+}
+
+#mytable {
+    /*height: fixed;*/
+    border: 1px solid black;
+    table-layout: fixed;
+    width:100%;
+    /*display: table-cell;*/
+    /*display: flex;*/
+}
+
+#mytable tr {
+    /*display: table-cell;*/
+}
+
+#mytable tr td {
+    background-color: white;
+    word-wrap:break-word;
+    display: table-cell;
+    cursor: pointer;
+}
+
+#mytable tr td .currentItem {
+    background-color: yellow;
+    /*word-wrap:break-word;
+    display: table-cell;*/
+}
+
+.scroll-table-body {
+    /*display: flex;*/
+    height: 250px;
+    overflow-x: auto;
+}
+
+
+div#div_carnav {
+    margin: -10px 0;
+    padding: 20px;
+    width: 20%;
+    height: 90%;
+    background: white;
+    border-left: 1px solid black;
+    text-align: right;
+    /*display: inline-block;*/
+    position: absolute;
+    float: right;
+    right: 0;
+    visibility: 'visible';
+}
+
+img {
+    max-width:auto; 
+    height:100%;
+}
+
+#buttonSkrytb {
+    /*z-index: 0;*/
+    /*position: absolute;*/
+    /*left: -100px;*/
+    /*top: 20px;*/
+}
+
+#buttonOtkrytb {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    visibility: hidden;
+}
+
+
+</style>
+<script type="text/javascript" defer="" src="https://yandex.st/jquery/1.9.1/jquery.min.js"></script>
+<script>
+
+var isRun = true;
+var iconurl = '';
+var address_site = '';
+var currentItem = 0;
+var timerValue = 5000;
+var flagSkrytb = false;
+var isClicked = false;
+var flagRandomPoryadok = false;
+var prevClickedItem = '';
+
+
+document.addEventListener('keydown', function(){
+    console.log('Success onkeydown');
+});
+document.addEventListener('keypress', function(){
+    console.log('Success onkeypress');
+});
+document.addEventListener('keyup', function(){
+    console.log('Success onkeyup');
+});
+
+document.addEventListener('keyup', function(event){
+    console.log('Key: ', event.key);
+    console.log('keyCode: ', event.keyCode);
+    if(event.key == 'ArrowLeft'){
+        funcPrev();
+    }
+    if(event.key == 'ArrowRight'){
+        funcNext();
+    }
+    if(event.key == 'ArrowDown'){
+        funcNext();
+    }
+    if(event.key == 'ArrowUp'){
+        funcPrev();
+    }
+});
+
+var sites = [];
+
+var urls = ["https://sun9-86.userapi.com/impf/zHZddCDtZFGm1CxbGxgXnsT4cJJHIzVw9BK3qw/Y4suW_uRISs.jpg?size=1280x853&quality=95&sign=70feaca6798374525e2cea1aca3aae96&type=album", 
+"https://sun9-21.userapi.com/impf/9ujb-v7VtJuLsFTvDBeL9PoDramPXHHXMxR3YQ/NgxdbhH_aXg.jpg?size=1280x853&quality=95&sign=68d77d83d34ae8bb5d640dd1fdf5b8cb&type=album", 
+"https://sun9-74.userapi.com/impf/HKjsew53apnbJCKSlNNqO3lj7OQcgtWFgtogcQ/z_amqqFxDGc.jpg?size=1280x853&quality=95&sign=a362376aae050cf20b29d42d3051becc&type=album", 
+"https://sun9-13.userapi.com/impf/pNkWYwVUVQKZsgs7yqySEP7B1PL-9VK3dDf-hw/5IgWXkOvUtc.jpg?size=720x1080&quality=95&sign=4760bb5a3c86935b16c105742e6b316b&type=album", 
+"https://sun9-52.userapi.com/impf/5MqvF-WRcHvtuQUmCu3vCDDm5j75UZpIyV0cNw/HeuPFNzeXkw.jpg?size=1280x853&quality=95&sign=bfb89e3d41647dcebdad3b46b7c0da73&type=album", 
+"https://sun9-44.userapi.com/impf/wp25y02S-Ib4YYyYSIZc_kGQmVM3G7dz5XFfLw/R_e_CrkgpYo.jpg?size=1280x853&quality=95&sign=5ae7d626293b4f1e1f6069c34b4d505b&type=album", 
+"https://sun9-4.userapi.com/impf/guJmvJwBUHVdh-Xojx8XQpxLeMKTPhSsePkWAg/1I2vBfgarZ8.jpg?size=1280x853&quality=95&sign=8901b7c58962511b17c66d5302bc5227&type=album", 
+"https://sun9-11.userapi.com/impf/1fL1_3t5KuWWo3uGlYjv8CuYA3nl2_LEwCR74A/iIlzqsde4BE.jpg?size=720x1080&quality=95&sign=773f73eecb6ce9f956fa7a08e2b841c1&type=album", 
+"https://sun9-24.userapi.com/impf/BjNUwOpInoWiCZPzRzYBCgiyPVl2hnHWMj52Ag/sm4JVHoDLuo.jpg?size=1280x853&quality=95&sign=53f32778f82febec2d6e317653dde4e2&type=album", 
+"https://sun9-80.userapi.com/impf/IwwZ3NELOKeIGZv3WbLoZgZ5kYaYBRheHTvHbg/NeH9kkYSlKs.jpg?size=1280x853&quality=95&sign=f7fca32a0933cd2bc29dd0555647cdef&type=album", 
+"https://sun9-20.userapi.com/impf/xUKtLwGsZ9Ulh0QrhnMkKHQdK99Lso5jghxQ0Q/u6Z-_FmyhK8.jpg?size=1280x853&quality=95&sign=dd0fe94414959507a9aeea4893eabb23&type=album", 
+"https://sun9-51.userapi.com/impf/MTxza68DpEgf2UBYCgc0VF8rOq18C0w7IXPRGw/Xsan5tDS_sw.jpg?size=720x1080&quality=95&sign=5b189dcfd79e92a951f3d0bc1a02b2a6&type=album", 
+"https://sun9-85.userapi.com/impf/ivvnu1hijrFP1TvxaZPiPyZrisU1G6g5dF-fnA/NrwGgZnp1MI.jpg?size=720x1080&quality=95&sign=055f04bcc84351944c3f67de9e078b21&type=album", 
+"https://sun9-40.userapi.com/impf/yEIoSzTIQ290rCAL5VdEATLLJWaG6oyWZY4-Qw/2zXrOEZNWLg.jpg?size=1280x853&quality=95&sign=be8e433a92fce2b8bf5de0c11b4c25cd&type=album", 
+"https://sun9-24.userapi.com/impf/JeGep_wOmKhm8fXPIQY__AN56qHSF0S5OaPkKA/6lJfqxKSNHw.jpg?size=1280x853&quality=95&sign=0adc7a950acfd2c87e4d6090224ee8aa&type=album", 
+"https://sun9-79.userapi.com/impf/kWk_8z8J28oMlTJxaZBiYKoETxQz4vGlTACBMw/Ak48NKdvSrQ.jpg?size=1280x853&quality=95&sign=24d080f5640e387c24fac43cd267bc72&type=album", 
+"https://sun9-82.userapi.com/impf/23Um06LvYSf0jETMvI5Fn7LdY_QIo0ETaXGC3w/1SGj_F7H7Ck.jpg?size=1280x853&quality=95&sign=a55e257e4763629366cb29d51e8f7a53&type=album", 
+"https://sun9-86.userapi.com/impf/efAoBXgihTLVgN_D_e9GbGGAfsJDz3iUvAp7mw/sf8p3sEWnuE.jpg?size=1280x853&quality=95&sign=ce8f76d16786d79df48111e41ca23126&type=album", 
+"https://sun9-86.userapi.com/impf/hESWxN1zHYTVWFNAXaxbWCViEXG5goGiQrxmnQ/USq3LhNkFcQ.jpg?size=1280x853&quality=95&sign=c7da7a5f15dfb08af1027eb30559b2f6&type=album", 
+"https://sun9-36.userapi.com/impf/BWvKsiG9yfUVssh2PGNUuKahSXw1EDYnodqYvg/SQfBftHpnaI.jpg?size=1280x853&quality=95&sign=25b09b47f5c42c4acc7714c4ebb47fab&type=album", 
+"https://sun9-16.userapi.com/impf/_1KkBtR1M7BDYM0FbcTPTA1662Bov9xS0ZuOSQ/64bWuvIRc4o.jpg?size=1280x853&quality=95&sign=09adfd268e2770a7d0d4f7b8cc27f25f&type=album", 
+"https://sun9-73.userapi.com/impf/hiuvWDxcKO7EXYm0Wl3nSNFnaVf6CMhDgznjrQ/kr50geuPlHg.jpg?size=1280x853&quality=95&sign=63433afc595117375a3d9c016def4636&type=album", 
+"https://sun9-67.userapi.com/impf/gvhaG2qJDi3nqcEUOeqpy3dtChQJqAepI3mvPg/GsJn58BLxTg.jpg?size=1280x853&quality=95&sign=a3845bfd6138fd02ed4960516529699c&type=album", 
+"https://sun9-22.userapi.com/impf/-28bkNJeZ7prY27pFM4KPnUwwCbp0YJ1k3Xz6w/7zwQe5nRvzk.jpg?size=1280x853&quality=95&sign=13e7b0b98808562ef8e20eccfc457c42&type=album", 
+"https://sun9-86.userapi.com/impf/llyZ6q2V3m5JqCazxSHDUXSl700lqUY05H0vbQ/INCOe0cEvsw.jpg?size=1280x853&quality=95&sign=ff749f12cb8c3fdcd5659586926fb0fa&type=album", 
+"https://sun9-78.userapi.com/impf/bNLxS5TN-QWOIOjrEXJqnT9836OqFdQCaneyhw/20iBGEQrhn0.jpg?size=1280x853&quality=95&sign=5bb1792d4abadf4fe1f35c99d36cbb58&type=album", 
+"https://sun9-46.userapi.com/impf/KkU2q7eUlJkeGBca1IMZrUe-N1F1U8yYEIUsKQ/FemN38RBRSU.jpg?size=1280x853&quality=95&sign=32364a4a94b3630001b187c40fd28dd3&type=album", 
+"https://sun9-22.userapi.com/impf/kvLzsD1hwOkOQ_3HMUl7CZ2bQ2r3uPCG2nZuZg/Ta1uN2fhWOM.jpg?size=1280x853&quality=95&sign=6a80a8e42eed1eefc168ceb212710973&type=album", 
+"https://sun9-66.userapi.com/impf/FqjeKI9uPSYK36pykn7qqVyeOgza8SzoOn_Seg/UOJXfnWmrSM.jpg?size=1280x853&quality=95&sign=5a8eaed73dabe4df7a78ee59c7387262&type=album", 
+"https://sun9-46.userapi.com/impf/a02Zy5SrnqNwqisAc-GZ9ViBdc_p8N1-TEv0zw/4UK1vL3IRzE.jpg?size=1280x853&quality=95&sign=ac238aad254af47c53f71b64fdb42043&type=album", 
+"https://sun9-78.userapi.com/impf/-loBuX6Sv4B-DE2bWml3dHuGRa7mhMX_GYhBVw/iyeOXJUd9Lg.jpg?size=1280x853&quality=95&sign=e0bba7d7ba8ad3a1c415087f757eaa56&type=album", 
+"https://sun9-20.userapi.com/impf/I3t5sieW_z6dA-teAbqNrdFueTp5IgUSPZ9O9A/Ycmvs909Tq0.jpg?size=1280x853&quality=95&sign=d53deb8d9f6fa126d75ce1423c7135be&type=album", 
+"https://sun9-77.userapi.com/impf/Y8in3OKCVzXgdSinHUm50woSlRs2NbJ1lMzmQg/ooc9zi-inDk.jpg?size=1280x853&quality=95&sign=8ee0893459c57910b9032051d7845235&type=album", 
+"https://sun9-62.userapi.com/impf/GXLLx2kB37w626GPNcLf0gQ5O88yvrTWXG5rFA/2EmTrYIWFls.jpg?size=720x1080&quality=95&sign=70d54462a6120601a9f27971babfb80f&type=album", 
+"https://sun9-72.userapi.com/impf/pn4cAj8EpHuqkBbbssAGMhm07Hjh0GlhaOM_Fg/3AKrD2vGWtk.jpg?size=1280x853&quality=95&sign=fd821c3d82c2a9f5b51c5bbf11d2db4f&type=album", 
+"https://sun9-38.userapi.com/impf/4yatjsBDSpLWEBQs7kj1baMds7e893yZw_HyEg/7SoC4F0Qze0.jpg?size=1280x853&quality=95&sign=6c50cfa5ef638eb5f18621a1ed912b2e&type=album", 
+"https://sun9-31.userapi.com/impf/R0H-o-CGeKTp1cO5dNxfZzTY0mz_ng5P5GsAeA/YsK7tA8onrs.jpg?size=1280x853&quality=95&sign=90b8eebeb27d09a45851b15a4efc1bca&type=album", 
+"https://sun9-49.userapi.com/impf/nQ3cvbJZHFH_wWOWZNM0WZEIm13V4s3oXihTdg/ttuRUjU_N7A.jpg?size=1280x853&quality=95&sign=6c4389157db6ca9b962f0dbb6fab7cb5&type=album", 
+"https://sun9-10.userapi.com/impf/E-ngaViUQXsh8t0Evi-zcVPKOBn7lo3pLwtTqw/fDOOpZ5Cfb4.jpg?size=1280x853&quality=95&sign=446b0d2d62857da2bfb8d5ac0ee2bbd9&type=album", 
+"https://sun9-85.userapi.com/impf/9EYjkb9GwME8JzZZ9ceEoGCwPcUDRrwYGLDa4g/GuVT4zKvXCg.jpg?size=720x1080&quality=95&sign=2013b05ff18c953a9d33751f41d8d491&type=album", 
+"https://sun9-75.userapi.com/impf/_f5z0-9wdYjliRaocmKtx3DCOW3hK0lg2uxRBw/gV85N6xzL8A.jpg?size=1280x853&quality=95&sign=d3f574e8551af7192a883b996c752d2c&type=album", 
+"https://sun9-69.userapi.com/impf/a6MGOcJ82Gmrlkdr15yXjlMJb4QOG-F8agwNWA/O3NMjG4vBJ4.jpg?size=1280x853&quality=95&sign=f2f301d6aa64cbe72e57f922a4d9d8f0&type=album", 
+"https://sun9-28.userapi.com/impf/rn6mTE23GophyLoGz3YaJcTKNqpdzJ1m2ETXWQ/FFP6z82CEIE.jpg?size=1280x853&quality=95&sign=50256a102de7c81b8890ebf868c0e4ff&type=album", 
+"https://sun9-30.userapi.com/impf/o0D2nY16y6WABGXu_Gx1ng95kjiYYfrRNl_xYw/gzLtqOljpSc.jpg?size=1280x853&quality=95&sign=eac63145d196bbba2fb15e938327a71e&type=album", 
+"https://sun9-9.userapi.com/impf/7RNRedjyyzZ6OTcMEUqQXkqYIYCFH8--AKRTsg/1h5dT3XzDYc.jpg?size=1280x853&quality=95&sign=cafc367b3de520861ce8a8b3e2dbeb49&type=album", 
+"https://sun9-74.userapi.com/impf/AgKkHyJbdrpfdOHRNQDQ4Rlw2JslVDJXORXnGg/bBkGQDhON-c.jpg?size=1280x853&quality=95&sign=fba097c0acc58a837e5714aa48648539&type=album", 
+"https://sun9-38.userapi.com/impf/Mpr_nANzcB1mnQWCV8eGtHXpPh-5m2lv6ENi9A/XyrvoxRdhfY.jpg?size=1280x853&quality=95&sign=11301179de9952d59b3105bd4b6ec595&type=album", 
+"https://sun9-33.userapi.com/impf/bQQNT7l31-xOFa4AZNNpkKhdT9oDVZLyMf9Beg/8SF3FbRPZCc.jpg?size=1280x853&quality=95&sign=c79ff99506ea147daceb4da1d5c41718&type=album", 
+"https://sun9-48.userapi.com/impf/jRFS2ovBxxxdIeF4Djg5LQluEuJMbOrQyDgsKg/ampZEHSFlqA.jpg?size=1280x853&quality=95&sign=55e48d8328ce49584ed1e7b6a0922fa0&type=album", 
+"https://sun9-29.userapi.com/impf/LhEfWQkhXmj_TCc4MrBNGQSjKE5K76_fOLWLdg/h7Mlj1hsz6w.jpg?size=1280x853&quality=95&sign=524a58420fa8aa733e0d7b98f38a6fdc&type=album", 
+"https://sun9-42.userapi.com/impf/Hg9o9-Wstd1WIGUvYL13XG1cl2-Z_gekDSFlMQ/7vl1cfq6XH4.jpg?size=1280x853&quality=95&sign=5b4771d11f93377287b162adb2f42fc3&type=album", 
+"https://sun9-81.userapi.com/impf/QmDCuwlmPDn-nj2-UtWIfaQEfwISAAEk1885zg/cE5hK3pgeCk.jpg?size=1280x853&quality=95&sign=fe3bde998875f2c56d81a6ca8df6d3b6&type=album", 
+"https://sun9-69.userapi.com/impf/FLEGdSA6RvmondaP6D8PqQDhqUkL3klyT7-x2Q/GfJt6xpD69k.jpg?size=1280x853&quality=95&sign=b6d6f585e89eff1fcd4fb56f1fcb1d09&type=album", 
+"https://sun9-38.userapi.com/impf/14JLNzZdJuS1z59TXnS4BfpfU5_mTv5lCAfo9g/vzNncvTQAlQ.jpg?size=1280x853&quality=95&sign=efb8fb2efda630aab30cf642878689ca&type=album", 
+"https://sun9-61.userapi.com/impf/e24JtmOoiTaXtXZYbw9vKRJWvK3qpBcCZ1CGwQ/aa_rkT0uUsU.jpg?size=1280x853&quality=95&sign=252163f57a1efc208e24d38f68192092&type=album", 
+"https://sun9-72.userapi.com/impf/UIQphQ7Kom2cQ2thFQ0OD68lO8sRnWIVhJRgMQ/w1MU2RxdJGI.jpg?size=1280x853&quality=95&sign=d7a9270c047eb1190d9ca8e5f3f0c5be&type=album", 
+"https://sun9-1.userapi.com/impf/vjU8T2RqkchakaGA8DCDJhsW7fHLTN3V6Ofa-w/QjybxgZ2m9I.jpg?size=1280x853&quality=95&sign=89ad28caee61e24bb6a1973b7baa0a15&type=album", 
+"https://sun9-67.userapi.com/impf/MV6WLkN5gXIGT8Lgh17gJOOrfYyn4k0Tib_9wQ/-SkMwvBNVXw.jpg?size=1280x853&quality=95&sign=63e30f82623a8769f6958c71b2a83733&type=album", 
+"https://sun9-59.userapi.com/impf/zQn9GEdBQTVq0wPnEY9pbpywWVXe2sS6gGsQcg/YDEQUQzJMOs.jpg?size=1280x853&quality=95&sign=a8201d286bfb47b13d85ba675f2104b0&type=album", 
+"https://sun9-51.userapi.com/impf/tzvk679N-EBfUnBZ8hsrEJtlGDBGwLW02fQCUQ/7R1e3TvRf9Y.jpg?size=1280x853&quality=95&sign=d298c8e9903eef62fff96cd504b838ce&type=album", 
+"https://sun9-74.userapi.com/impf/3pSqZzAg_pBwcnDAdTjmsd9LPw0qT5g3CGKF0w/rxahF214Yt4.jpg?size=1280x853&quality=95&sign=1583fc4cfc8b3d208d32e8b89a7faebe&type=album", 
+"https://sun9-2.userapi.com/impf/JpFHygqu9yLyr7eVZLTftTRw_qSyo-7wOfUj6A/Xa3TnC0pWbQ.jpg?size=1280x853&quality=95&sign=9797231c7257510643c6638dd1e34f1b&type=album", 
+"https://sun9-78.userapi.com/impf/wRFI9UrQ1eQVhWzEglu1HtEqnSNBiO6BlehcdQ/IZww9IQWZQg.jpg?size=1280x853&quality=95&sign=bed55a8ec83be55ca94665d7f9ccc789&type=album", 
+"https://sun9-42.userapi.com/impf/W3T08RB5blZ9lFamhwx6UCZVZAjDdXkRiH660g/njxaRp0-azc.jpg?size=1280x853&quality=95&sign=aaa2c15a5dad8c576bae3499f638f685&type=album", 
+"https://sun9-19.userapi.com/impf/mhRkx_FntHiaZyP_jtzYxEDf_Hn2GmJdH_iFeg/r1XoOmAQGzE.jpg?size=1280x853&quality=95&sign=3a6ff8e394c179a86e77d300cca46418&type=album", 
+"https://sun9-30.userapi.com/impf/BQqQbh9z0utJEMsufAqqAHMO2N5MhcB16Sch4A/R7D8JCuo8V8.jpg?size=1280x853&quality=95&sign=529c43a238e485607c4fcbf90db598b0&type=album", 
+"https://sun9-10.userapi.com/impf/M86s87I7ceZJxB-KGz8kZ0EU2KgHBa_HTa7skA/pRBTClQpDGU.jpg?size=1280x853&quality=95&sign=6baae3ba4588dacea5b7abced8ecabf9&type=album", 
+"https://sun9-10.userapi.com/impf/ql-6x3BXX59UBq9QNqEtEwinzYS4atGjNE-ngQ/i7Dv4c2dCuw.jpg?size=1280x853&quality=95&sign=f866a36c61d766b31b53b1586e7d666e&type=album", 
+"https://sun9-23.userapi.com/impf/70yye13VvBBhHcJyMZD1IWcY7WsRC-wHed-HYA/3W4jD9JDeTE.jpg?size=1280x853&quality=95&sign=26a669186c30d438ff1be21abfb097e2&type=album", 
+"https://sun9-17.userapi.com/impf/bYKnm2AdLp37gqWKxfa7jClGf2Xi8GA04hoSQg/jiFiv3tRjUw.jpg?size=1280x853&quality=95&sign=cb3d7cccd83f7f461477a1f740a54533&type=album", 
+"https://sun9-23.userapi.com/impf/ZqIjCnC_j8qeX9DMZSQjal67lmTeReT7tkHiwQ/jM6X_obNMkY.jpg?size=1280x853&quality=95&sign=e0211f2b915e17b7c7ac9b2e36483a42&type=album", 
+"https://sun9-78.userapi.com/impf/fb8HH7HwQ2etydIhLGr3_H41yFYcQCi9MJwgvw/wCLdK6MhDCQ.jpg?size=1280x853&quality=95&sign=c96aeec58404c045338a63b17114413b&type=album", 
+"https://sun9-24.userapi.com/impf/J8emHdg6HhjO1av9l39JCNxhe0mCbZx-b-U09w/dXse2SM42iM.jpg?size=1280x853&quality=95&sign=9a310cfbde851dfb4162fd1bc053d24a&type=album", 
+"https://sun9-5.userapi.com/impf/dWVoDAhrxA02zmCodLd1qGp0VwVSwAOhNGLdbw/j8Luw0FBKEQ.jpg?size=1280x853&quality=95&sign=127e910911bbd09678cd55d815fe43ee&type=album", 
+"https://sun9-81.userapi.com/impf/eQ1Fon9Y8Hh_yLveppOPOGN9Z-3zKQeozHp1dA/6ZlF2-KBuDI.jpg?size=1280x853&quality=95&sign=0ad0788da001127167afb2a29b15bda5&type=album", 
+"https://sun9-11.userapi.com/impf/9G0HwJ4Kw6VKOGA6hZRlMHWJXOTy8L4Rc4XJ9w/1IfTyWF1MGo.jpg?size=1280x853&quality=95&sign=12b3e9fcb19b8d2004d7ce96ae174eb3&type=album", 
+"https://sun9-10.userapi.com/impf/TyWpDy5xZg-y8aNgfsl5erNUV05QKsvFOffbeg/wX3PmTthhsg.jpg?size=720x1080&quality=95&sign=fc094b092b50d5d675a953e72f91f816&type=album", 
+"https://sun9-61.userapi.com/impf/YpwHCZorkWlybQBWYSHRssr4N8e5HfrbucWclA/Myt2g-qjLgM.jpg?size=1280x853&quality=95&sign=d852106c1d6a746fff331e31bae138b7&type=album", 
+"https://sun9-9.userapi.com/impf/xVG0JVZ0QPuYEzekqfUwfdIwyUhvOQbj4SxhHA/LPhZc-IpxpE.jpg?size=1280x853&quality=95&sign=98b08dad8de6916c580452e76a16d82b&type=album", 
+"https://sun9-40.userapi.com/impf/ejlKXI87BRGTrPxoBYeHjaah7TVYM0IYXi7i0g/2YPkpqcmCsE.jpg?size=1280x853&quality=95&sign=8f605015b8912f5273ffb3fc089214eb&type=album", 
+"https://sun9-7.userapi.com/impf/4UbLoW1vypUtqrBFchOkMCwN-HDH6qF7FpNrEQ/uG0DZ8zXDNg.jpg?size=1280x853&quality=95&sign=73a01f97ef4b66ef03561a3541033840&type=album", 
+"https://sun9-70.userapi.com/impf/Mca7ngtFEI-XopuqvoHB991_5ztoQ6X9RNCz1w/R3wb3nIqqQE.jpg?size=1280x853&quality=95&sign=8f4869387d848c3d9114190bdd1aa653&type=album", 
+"https://sun9-66.userapi.com/impf/8tf-2IdDUEHr532aeLScueR2DK6rjoTsoCZQwA/ejBbbFU0yOQ.jpg?size=1280x853&quality=95&sign=da0b0c33c8cb7b482b265cd15569d7b8&type=album", 
+"https://sun9-5.userapi.com/impf/bXpgH0Sx2qA2G1Jccer9sAUKKdVuMN2Aa-vGig/L1deOjZugDk.jpg?size=1280x853&quality=95&sign=d0be2cfaa4a7bfbd29a08b6e05c707ed&type=album", 
+"https://sun9-3.userapi.com/impf/dkvDMcBIkMUz1FzFHeiTwlmsysKGOyaOVYUNJQ/myMKMWFtx6c.jpg?size=1280x853&quality=95&sign=0f475766642abee610ee330d25a0ed90&type=album", 
+"https://sun9-58.userapi.com/impf/a3Q-LF0KpGcjPbIQ53WTdSwkAoZmHfxdOfBC-Q/gwyW9mqNHtk.jpg?size=1280x853&quality=95&sign=b2253b0fc7eb8702038bca1bf62c2e3e&type=album", 
+"https://sun9-1.userapi.com/impf/51bIFcmEn29v3WkNORrqWgBq6gtdfmWqpgqSMA/0NS87HBsu3k.jpg?size=1280x853&quality=95&sign=90f6be9d58132fbeebcdec00d8b761f4&type=album", 
+"https://sun9-30.userapi.com/impf/d6-zS4-873_LGSUPx8Qd1qovG7tqpFSEgDXm9Q/idH9H6aZJu4.jpg?size=1280x853&quality=95&sign=2a9cec7ff061c642b6e68d462bca069b&type=album", 
+"https://sun9-82.userapi.com/impf/FoUTx1neYVw-yTOMj-Wd0qyIErf6XgZ16x43gg/-jNdHVZA1MQ.jpg?size=1280x853&quality=95&sign=9c1ca9ceb0346d99de3cd644c01b3121&type=album", 
+"https://sun9-44.userapi.com/impf/OPJYACfwpMs7ebDiGWq0Q5A75In5bq82JN3gFA/waLtpIvJW-I.jpg?size=1280x853&quality=95&sign=bbbcb6899457ad44b64c430019637cbc&type=album", 
+"https://sun9-81.userapi.com/impf/bo2ch_9mInRGBrk6cozIMfjCkzxNGI2jYlOYGg/rGCqExO0WKU.jpg?size=1280x853&quality=95&sign=495772221658797c3ad50f7c84b855a2&type=album", 
+"https://sun9-55.userapi.com/impf/OjWb6uDIIDYswM5B24beTnpHiOd4gEUXQ-6JIg/Mtz2HZi77BI.jpg?size=1280x853&quality=95&sign=ab05f20291e554f957532598e40ad434&type=album", 
+"https://sun9-61.userapi.com/impf/43WkeDG8x4_49cnUWA_pefsPSByUCWywGHcajg/IfaqI8g9VnQ.jpg?size=1280x853&quality=95&sign=2c28a7b403796323593953c90c1303df&type=album", 
+"https://sun9-2.userapi.com/impf/G7BUo8fjYjU2yPh7gxOw94lWTZoZkGcNHRBSLA/l0ePuAZqMdc.jpg?size=1280x853&quality=95&sign=950806894caf6f7d0550bb8d630d5a26&type=album", 
+"https://sun9-85.userapi.com/impf/UgT6vNkY6KbXOE3ZquLImbPoDM2xkU_4zBeBNA/u13TExY6VrI.jpg?size=1280x853&quality=95&sign=04b98f565f48774d2963d9503e8886b9&type=album", 
+"https://sun9-51.userapi.com/impf/izamwSKFPUwRJ6us-HjX0P6ut_1ltHXPGbw6pg/Ekl9Rh-Do4I.jpg?size=1280x853&quality=95&sign=07d7f81850967e6fad27ec1fc896c550&type=album", 
+"https://sun9-85.userapi.com/impf/m3vQOndSTlq71LilAFnWFkc72ksAlfUCfHrYGw/w41lQPlh774.jpg?size=1280x853&quality=95&sign=f4fa1f5e875d3127309864ec42cb4b65&type=album", 
+"https://sun9-76.userapi.com/impf/RCoEG3p8HfaY9xkEzfM6YggIqTTjFxguGmTWUA/WmYbmMDrsJA.jpg?size=1280x853&quality=95&sign=0c42441a3ba79454cb0ddf5817100b18&type=album", 
+"https://sun9-78.userapi.com/impf/Bno87xU_H883m0jAH2tMBQKQrx5TPWUSmW0RsA/ezXAasuJidM.jpg?size=1280x853&quality=95&sign=b222746e128b7b11a75419e4b8c77ea7&type=album", 
+"https://sun9-80.userapi.com/impf/pMo0ZkV93_RWFMucAHQs0bNtJtliYr1kFSYzHg/MsqvEddTEOg.jpg?size=1280x853&quality=95&sign=91dd9495b1955be3ae08c3f1ff2eb8e2&type=album", 
+"https://sun9-48.userapi.com/impf/mfvlpvhFIkHEoKL_mV1iqA68-PQL8MujP4a9_Q/yrM5zhNJNUg.jpg?size=1280x853&quality=95&sign=8759d9d1ce4449ae0c3407b8320c02ef&type=album", 
+"https://sun9-83.userapi.com/impf/rA8pEZvuMgRauH-aPiR8H-jllAzO1LjGqOZHmg/2arXibBOPLw.jpg?size=1280x853&quality=95&sign=f4206c6c4754b0cb1050171f9b757dc9&type=album", 
+"https://sun9-82.userapi.com/impf/6_dFLKq-3LB6i9oDIdfKot1qOO7nuhlzQGr80g/5hh9vU0knU8.jpg?size=720x1080&quality=95&sign=d40d1b724534be9680a05ef53f693024&type=album", 
+"https://sun9-16.userapi.com/impf/hKnBrlF3ZnlIWSg1bO-IE02adcnkCp9Cs4d16w/l2yZq5k5SsY.jpg?size=1280x853&quality=95&sign=a233d25806e1d48ad7657cd358ad33a4&type=album", 
+"https://sun9-1.userapi.com/impf/L_uoA8omptA7oktxdTixT7mlm0y1zJ6fDDYAIw/S3hlk9XWaj4.jpg?size=1280x853&quality=95&sign=366d7fe4c1d0cdd22074b90e7c5a15b2&type=album", 
+"https://sun9-29.userapi.com/impf/cPzHq3dPvNhGmmlTPnIBXkAbh1f-HmikUwnLAg/LwYQMlzshWE.jpg?size=1280x853&quality=95&sign=eead2bf9e878f733524cb4114821d9ec&type=album", 
+"https://sun9-86.userapi.com/impf/57KxWw9u1WiAHtjXRdqa34lxoKQ0QKzgrR4vZA/2g6PRY6dqeA.jpg?size=1280x853&quality=95&sign=4641541556181295376d4fce7e8dfec1&type=album", 
+"https://sun9-27.userapi.com/impf/iAlCS_g6M9LqzxbC3T42-AWts8aqxdUS1Jp-nw/MFB76RSZTtI.jpg?size=1280x853&quality=95&sign=ea40127d75ec2a026d97f5df96615def&type=album", 
+"https://sun9-53.userapi.com/impf/RwNxKVn8_E7UuYoBRP1A0UC5abIkFIkbEbSmKA/RdkIvJAJmU8.jpg?size=1280x853&quality=95&sign=b3be585d8f9a3c250961ddf8efc9b129&type=album", 
+"https://sun9-12.userapi.com/impf/gRrFO203wdz1XJo4MZ6CwpCPl0oXPKvVtToPeQ/Qc4d6EhHv1k.jpg?size=1280x853&quality=95&sign=10479355de9522ed1b5b412d6188ed76&type=album", 
+"https://sun9-1.userapi.com/impf/sknNTN95AtKRTGqSq2en9H2HMwG9HWFflvpUlA/8VfuilHhV6U.jpg?size=1280x853&quality=95&sign=325918397e4baef462f98e171f7dbf8c&type=album", 
+"https://sun9-78.userapi.com/impf/8iYmzBZmrdHsbtbxmEdVFc7GI_7gJ813FU6MwA/B6blBloZEmY.jpg?size=1280x853&quality=95&sign=4a70554974cf1abdddb93eb5eabc3a1e&type=album", 
+"https://sun9-51.userapi.com/impf/SkWxOms7Hz5xEZscJDffW2N_vtjLY4k5tTr8vA/_8k6wo4tK0s.jpg?size=1280x853&quality=95&sign=f555108dc57ec232199dc1d36cc10f8d&type=album", 
+"https://sun9-7.userapi.com/impf/YMNINIRxBh0LQXk67c8m-kTWMExl2tEUkx3b9Q/xWNG9fpWKZY.jpg?size=1280x853&quality=95&sign=bd8a7d72dddfc508ac00558ddd72d51e&type=album", 
+"https://sun9-36.userapi.com/impf/f34pKw39PcwbM6S264aTqxMr1nMg9wzozmDf7A/RwAUxvVknoc.jpg?size=1280x853&quality=95&sign=9d2dd13ab3ec652f6d42c300df4f89bf&type=album", 
+"https://sun9-7.userapi.com/impf/PCJqUhw4m9BB1SoDJshi3z0LOM4il7RAb9b1Lg/rRo1jl567AU.jpg?size=1280x853&quality=95&sign=b2c55e79d677b2932858798de90a376c&type=album", 
+"https://sun9-33.userapi.com/impf/INvt3ap-RJpxtwxHebNIVa9USgp5pfp0YTzdrw/cIEEoygZNUY.jpg?size=1280x853&quality=95&sign=6b71d9e5f2426d19e0a4f4fb689eca6d&type=album"];
+
+function funcButtonAdd(){
+    console.log("funcButtonAdd()");
+    myDivAdd.style.visibility="visible";
+}
+
+function buttonFormCancel(){
+    console.log("buttonFormCancel()");
+    myDivAdd.style.visibility="hidden";
+}
+
+function buttonFormAdd(){
+    console.log("buttonFormAdd()");
+    myDivAdd.style.visibility="hidden";
+    
+    console.log("addressForm.value = " + addressForm.value);
+    urls.push(addressForm.value);
+    sites.push(siteForm.value);
+    let num = urls.length - 1;
+    let tr = document.createElement("tr");
+    tr.innerHTML = '<td id="td-' + num + '" clicked="false" item="' + num + '" onclick="aclick(this);"><p>' + urls[urls.length - 1] + '</p></td>';
+    //tr.innerHTML = '<td id="td-' + index + '" clicked="false" item="' + index + '" onclick="aclick(this);"><p>' + urls[index] + '</p></td>';
+    mytable.appendChild(tr);
+}
+
+function funcButtonRemove(){
+    console.log("funcButtonRemove()");
+    //urls[urls.length - 1];
+    document.getElementById('mytable').deleteRow(urls.length-1);
+    urls.pop();
+    sites.pop();
+    //document.getElementsById("td-"+urls.length-1).remove();
+    
+
+    
+    //let el = document.getElementById('td-' + urls.length - 1);
+    //el.remove(); // Удалит элемент div с идентификатором 'div-02'
+    /*for(let i = 0; i < urls.length; i ++){
+        let el = document.getElementById('td-' + urls.length - 1);
+        el.remove(); // Удалит элемент div с идентификатором 'div-02'
+    }*/
+    //urls[currentItem].splice(currentItem, 1);
+    //sites[currentItem].splice(currentItem, 1);
+    //mytable.
+}
+
+function clearAll() {
+    console.log("clearAll");
+    urls.splice(0, urls.length);
+    sites.splice(0, sites.length);
+    while(mytable.rows.length > 0) {
+        mytable.deleteRow(0);
+    }
+}
+
+function change(in_currentItem){
+    currentItem = in_currentItem;
+    if(flagRandomPoryadok){
+        currentItem = getRandomInt(urls.length - 1);
+    }
+    iconurl=urls[currentItem];
+    address_site = sites[currentItem];
+    $("#img_loadmyslider").removeAttr("src").attr("src", iconurl);
+    $("#address_imgmyslider").removeAttr("href").attr("href", address_site);
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+function checkboxRandomPoryadokClick(){
+    console.log("checkboxRandomPoryadokClick()");
+    //let num = getRandomInt(urls.length);
+    //currentItem = num;
+    //console.log("currentItem = " + currentItem);
+    flagRandomPoryadok = checkboxRandomPoryadok.checked;
+    console.log("flagRandomPoryadok = " + flagRandomPoryadok);
+    /*if(checkboxRandomPoryadokClick.checked){
+        flagRandomPoryadok = true;
+        console.log("flagRandomPoryadok = " + flagRandomPoryadok);
+        
+    }else{
+        flagRandomPoryadok = false;
+        console.log("flagRandomPoryadok = " + flagRandomPoryadok);
+    }*/
+    
+    //change();
+}
+
+function aclick(in_this) 
+{
+    console.log("aclick");
+    isClicked = true;
+    prevClickedItem = currentItem;
+    currentItem = in_this.getAttribute("item");
+    console.log("item = " + currentItem);
+    for( let i = 0; i < urls.length; i++){
+        $("#td-" + i).removeAttr("class");//.attr("class", "unclicked");
+    }
+    in_this.setAttribute("clicked", true);
+    in_this.setAttribute("class", "clicked");
+
+    //iconurl = urls[currentItem];
+    //address_site = sites[currentItem];
+    //$("#address_imgmyslider").removeAttr("href").attr("href", address_site);
+    //$("#img_loadmyslider").removeAttr("src").attr("src", iconurl);
+    change(currentItem);
+}
+
+function addToTable()
+{
+    urls.forEach(function(item, index, array) {
+        console.log(item, index);
+        var tr = document.createElement("tr");
+        //tr.innerHTML = '<td onclick="aclick();"><a href="' + urls[index] + '" >' + urls[index] + '</a></td>';
+        tr.innerHTML = '<td id="td-' + index + '" clicked="false" item="' + index + '" onclick="aclick(this);"><p>' + urls[index] + '</p></td>';
+        mytable.appendChild(tr);
+    });
+}
+
+function tableChange()
+{
+    console.log("tableChange");
+    for( let i = 0; i < urls.length; i++){
+        $("#td-" + i).removeAttr("class");//.attr("class", "unclicked");
+    }
+    $("#td-" + currentItem).removeAttr("class").attr("class", "clicked");
+    //$("#td-" + currentItem).focus();
+    //document.getElementById("#td-20").focus();
+}
+
+function timerChange()
+{
+    //alert(this.value);
+    console.log("timerChange()");
+    timerValue = timer.value;
+    console.log("timer.value = " + timer.value);
+}
+
+function otkrytb() {
+    console.log("otkrytb");
+    if(flagSkrytb){
+        flagSkrytb = false;
+        div_carnav.style.visibility="visible";
+        buttonSkrytb.style.visibility='visible';
+        buttonOtkrytb.style.visibility='hidden';
+    }else{
+        flagSkrytb = true;
+        
+    }
+}
+
+function skrytb() {
+    console.log("skrytb");
+    if(flagSkrytb){
+        flagSkrytb = false;
+        
+    }else{
+        flagSkrytb = true;
+        div_carnav.style.visibility="hidden";
+        buttonOtkrytb.style.visibility="visible";
+        buttonSkrytb.style.visibility="hidden";
+    }
+
+}
+
+function proverkaCurrentItem()
+{
+    console.log("proverkaCurrentItem");
+    if(currentItem < 0){
+        console.log("if(currentItem < 0");
+        currentItem = urls.length - 1;
+    }
+    
+    if (currentItem >= urls.length){
+        console.log("if(currentItem >= urls.length");
+        currentItem = 0;
+    }
+}
+
+function funcNext()
+{
+    console.log("funcNext");
+    currentItem++;
+    console.log("currentItem = " + currentItem);
+    proverkaCurrentItem();
+    //iconurl = urls[currentItem];
+    //address_site = sites[currentItem];
+    //$("#address_imgmyslider").removeAttr("href").attr("href", address_site);
+    //$("#img_loadmyslider").removeAttr("src").attr("src", iconurl);
+    change(currentItem);
+    tableChange();
+}
+
+function funcPrev()
+{
+    console.log("funcPrev");
+    currentItem--;
+    if(currentItem<0){
+        currentItem = urls.length - 1;
+    }
+    console.log("currentItem = " + currentItem);
+    proverkaCurrentItem();
+    //iconurl = urls[currentItem];
+    //address_site = sites[currentItem];
+    //$("#address_imgmyslider").removeAttr("href").attr("href", address_site);
+    //$("#img_loadmyslider").removeAttr("src").attr("src", iconurl);
+    change(currentItem);
+    tableChange();
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function autolist() {
+    console.log("autolist");
+    
+    if(checkboxAutolist.checked){
+        console.log("checked");
+        $("#buttonNext").attr("disabled", true);
+        $("#buttonPrev").attr("disabled", true);
+        isRun = true;
+        myslider();
+    }else{
+        console.log("unchecked");
+        $("#buttonNext").removeAttr("disabled");
+        $("#buttonPrev").removeAttr("disabled");
+
+        isRun = false;
+    }
+}
+
+
+
+async function myslider(){
+    console.log('целительница, блаженное чрево, неупиваемая чаша, жировицкая');
+
+    //let i = 0;
+    //currentItem = 0;
+    
+    
+    if(isRun){
+        while (currentItem <= urls.length - 1){
+            if(isRun){
+            //целительница
+            /*if(currentItem==0){iconurl=urls[0]};
+            if(currentItem==1){iconurl=urls[1]};
+            if(currentItem==2){iconurl=urls[2]};
+            if(currentItem==3){iconurl=urls[3]};
+            if(currentItem==4){iconurl=urls[4]};
+            if(currentItem==5){iconurl=urls[5]};
+            //блаженное чрево
+            if (currentItem==6){iconurl=urls[6]}
+            if (currentItem==7){iconurl=urls[7]}
+            if (currentItem==8){iconurl=urls[8]}
+            //неупиваемая чаша
+            if (currentItem==9){iconurl=urls[9]}
+            if (currentItem==10){iconurl=urls[10]}
+            if (currentItem==11){iconurl=urls[11]}
+            if (currentItem==12){iconurl=urls[12]}
+            if (currentItem==13){iconurl=urls[13]}
+            if (currentItem==14){iconurl=urls[14]}
+            if (currentItem==15){iconurl=urls[15]}
+            if (currentItem==16){iconurl=urls[16]}
+            if (currentItem==17){iconurl=urls[17]}
+            if (currentItem==18){iconurl=urls[18]}
+            if (currentItem==19){iconurl=urls[19]}
+            //жировицкая
+            if (currentItem==20){iconurl=urls[20]}
+            if (currentItem==21){iconurl=urls[21]}
+            if (currentItem==22){iconurl=urls[22]}
+            if (currentItem==23){iconurl=urls[23]}
+            if (currentItem==24){iconurl=urls[24]}*/
+            
+            //iconurl=urls[currentItem];
+            //address_site = sites[currentItem];
+            //$("#img_loadmyslider").removeAttr("src").attr("src", iconurl);
+            //$("#address_imgmyslider").removeAttr("href").attr("href", address_site);
+            
+            /*if(checkboxRandomPoryadok.checked){
+                currentItem = getRandomInt(urls.length);
+            }*/
+            
+            change(currentItem);
+            tableChange();
+            /*$("#mytable tr td .currentItem").*/
+            console.log(iconurl);
+            console.log(address_site);
+            await sleep(timerValue);
+            if(isRun)
+                currentItem++;
+            console.log("next Item: " + currentItem)
+
+            if (currentItem === urls.length){currentItem = 0;}
+
+            }else{
+                break;
+            }
+        }
+    }
+
+}
+
+
+
+</script>
+
+</head>
+
+<body>
+
+<div class="cont clearfix">
+
+    <div id="myDivAdd" >
+        <p>
+        <label>картинка: </label>
+        <input id="addressForm" type="text" name="q" value="addressFormValue" />
+        </p>
+        <p><label>куда ведет: </label>
+        <input id="siteForm" type="text" name="q" value="siteFormValue"/>
+        </p>
+        <button id="btnFormAdd" onclick="buttonFormAdd();">добавить</button>
+        <button id="btnFormCancel" onclick="buttonFormCancel();">отменить</button>
+    </div>
+
+    <div id="div_carnav" class="car-nav">
+        <button id="buttonSkrytb" onclick="skrytb();" value=">">></button>
+        <button id="buttonOtkrytb" onclick="otkrytb();" value=""><</button>
+        <p><input id="checkboxAutolist" type="checkbox" checked="checked" onclick="autolist();">автопролистывание</input></p>
+        <p><INPUT id="checkboxRandomPoryadok" type="checkbox" onclick="checkboxRandomPoryadokClick();">в случайном порядке</input></p>
+        <button id="buttonPrev" onclick="funcPrev();" disabled>пред</button>
+        <button id="buttonNext" onclick="funcNext();" disabled>след</button>
+        <br>
+        <span>Таймер</span>
+        <INPUT id="timer" TYPE="RANGE" MIN="1000" MAX="20000" STEP="1000" onchange="timerChange();" VALUE="5000">
+        
+        <p>Эффект: простая смена</p>
+        <button id="clearAllButton" onclick="clearAll();">очистить</button>
+        <button id="addButton" onclick="funcButtonAdd();" value="+">+</button>
+        <button id="removeButton" onclick="funcButtonRemove();" value="-">-</button>
+        <div class="scroll-table-body">
+
+            <table id="mytable">
+                <tr></tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="slider">
+        <div class="slideshow"></div>
+            <div id="div_loadmyslider">
+                <a id="address_imgmyslider" href="https://azbyka.ru/days/menology/ikons">
+                    <img id="img_loadmyslider" src="https://azbyka.ru/days/assets/img/icons/73/preview_200_200__p1dfaf1108qv617km6c21qtpbhi7.png?1580841436"/>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+
+
+</div>
+
+<style>
+
+</style>
+
+<script>
+
+window.onload = function() {
+    // Ваш скрипт
+    addToTable();
+    currentItem = 0;
+    myslider();
+};
+
+</script>
+
+</body>
+
+</html>
